@@ -6,6 +6,7 @@ pygame.init()
 
 running = True
 rerun = True
+GM_OV = False
 
 # Screen parameters
 WIDTH = 500
@@ -15,18 +16,21 @@ SCREEN_IMAGE = "bomb32.png"
 
 ROWS = 10
 COLUMNS = 10
-MINES = 8
+MINES = 15
+
 FIELD = []
 FIELD_LAYER = []
 FIELD_LAYER_COLOR = "#325156"
+GAME_OVER_COLOR = "#ef233c"
+GAME_OVER_BG_COLOR = "#D3D3D3"
 
 # Cube parameters
 CUBE_COLOR = "#3C3F41"
 CUBE_SIZE = WIDTH // ROWS
-CUBE_RADIUS = 12
+CUBE_RADIUS = 4
 CUBE_BOMB = "bomb.png"
-CUBE_NUMBERS_COLOR = {1: 'white', 2: 'green', 3: 'red', 4: 'blue',
-                      5: 'purple', 6: 'yellow', 7: 'lightblue', 8: 'pink'}
+CUBE_NUMBERS_COLOR = {1: '#ffffff', 2: '#a7c957', 3: '#ef233c', 4: '#fee440',
+                      5: '#81c3d7', 6: '#e0b1cb', 7: '#fca311', 8: '#f0ead2'}
 
 # Game GUI parameters
 logo = pygame.image.load(SCREEN_IMAGE)
@@ -35,7 +39,7 @@ pygame.display.set_caption("Minesweeper")
 
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 
-FONT = pygame.font.SysFont("Helvetica", 20)
+FONT = pygame.font.SysFont("Helvetica", 25, bold=True)
 
 
 def modify_cells(b_row, b_col):
@@ -146,44 +150,6 @@ def create_fields(rows, cols, mines):
         modify_cells(r, c)
 
 
-def create_screen():
-
-    for ind1, r in enumerate(FIELD):
-        for ind2, c in enumerate(r):
-            x = ind1 * CUBE_SIZE
-            y = ind2 * CUBE_SIZE
-
-            is_clicked = FIELD_LAYER[ind1][ind2] == 0
-
-            if is_clicked:
-                pygame.draw.rect(screen, FIELD_LAYER_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
-                pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
-                continue
-            else:
-                pygame.draw.rect(screen, CUBE_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
-                pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
-
-            if c < 0:
-                bomb_in_cube = pygame.image.load(CUBE_BOMB)
-                x_numInCube = bomb_in_cube.get_width()
-                y_numInCube = bomb_in_cube.get_height()
-                screen.blit(
-                    bomb_in_cube,
-                    (x + (CUBE_SIZE // 2 - x_numInCube / 2), y + (CUBE_SIZE // 2 - y_numInCube / 2))
-                )
-
-            if c > 0:
-                number_in_cube = FONT.render(str(c), True, CUBE_NUMBERS_COLOR[c])
-                x_numInCube = number_in_cube.get_width()
-                y_numInCube = number_in_cube.get_height()
-                screen.blit(
-                    number_in_cube,
-                    (x + (CUBE_SIZE // 2 - x_numInCube / 2), y + (CUBE_SIZE // 2 - y_numInCube / 2))
-                )
-
-    pygame.display.update()
-
-
 def get_cell_around(r_point, c_point):
     all_around = []
 
@@ -270,6 +236,48 @@ def get_coordinates(mouse):
     return row, col
 
 
+def create_screen():
+
+    for ind1, r in enumerate(FIELD):
+        for ind2, c in enumerate(r):
+            x = ind1 * CUBE_SIZE
+            y = ind2 * CUBE_SIZE
+
+            is_clicked = FIELD_LAYER[ind1][ind2] == 0
+
+            if GM_OV:
+                game_over = FONT.render("GAME OVER", True, GAME_OVER_COLOR, GAME_OVER_BG_COLOR)
+                screen.blit(game_over, (190, 240))
+
+            if is_clicked:
+                pygame.draw.rect(screen, FIELD_LAYER_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
+                pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
+                continue
+            else:
+                pygame.draw.rect(screen, CUBE_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
+                pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
+
+            if c < 0:
+                bomb_in_cube = pygame.image.load(CUBE_BOMB)
+                x_numInCube = bomb_in_cube.get_width()
+                y_numInCube = bomb_in_cube.get_height()
+                screen.blit(
+                    bomb_in_cube,
+                    (x + (CUBE_SIZE // 2 - x_numInCube / 2), y + (CUBE_SIZE // 2 - y_numInCube / 2))
+                )
+
+            if c > 0:
+                number_in_cube = FONT.render(str(c), True, CUBE_NUMBERS_COLOR[c])
+                x_numInCube = number_in_cube.get_width()
+                y_numInCube = number_in_cube.get_height()
+                screen.blit(
+                    number_in_cube,
+                    (x + (CUBE_SIZE // 2 - x_numInCube / 2), y + (CUBE_SIZE // 2 - y_numInCube / 2))
+                )
+
+    pygame.display.update()
+
+
 while running:
 
     if rerun:
@@ -281,7 +289,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             break
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and not GM_OV:
             mouse_position = pygame.mouse.get_pos()
             m_r, m_c = get_coordinates(mouse_position)
 
@@ -293,6 +301,9 @@ while running:
                 look_around(m_r, m_c)
             elif FIELD[m_r][m_c] != -1:
                 FIELD_LAYER[m_r][m_c] = 1
+            elif FIELD[m_r][m_c] == -1:
+                FIELD_LAYER[m_r][m_c] = 1
+                GM_OV = True
 
     screen.fill(SCREEN_COLOR)
 
