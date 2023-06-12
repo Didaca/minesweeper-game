@@ -21,6 +21,11 @@ MINES = 15
 FIELD = []
 FIELD_LAYER = []
 FIELD_LAYER_COLOR = "#325156"
+
+FLAG_LIST = []
+FLAGS = MINES
+FLAG_IMAGE = "flag.png"
+
 GAME_OVER_COLOR = "#ef233c"
 GAME_OVER_BG_COLOR = "#D3D3D3"
 
@@ -244,10 +249,24 @@ def create_screen():
             y = ind2 * CUBE_SIZE
 
             is_clicked = FIELD_LAYER[ind1][ind2] == 0
+            flag = FIELD_LAYER[ind1][ind2] == 2
 
             if GM_OV:
                 game_over = FONT.render("GAME OVER", True, GAME_OVER_COLOR, GAME_OVER_BG_COLOR)
                 screen.blit(game_over, (190, 240))
+
+            if flag:
+                pygame.draw.rect(screen, FIELD_LAYER_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
+                pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
+
+                flag_in_cube = pygame.image.load(FLAG_IMAGE)
+                x_numInCube = flag_in_cube.get_width()
+                y_numInCube = flag_in_cube.get_height()
+                screen.blit(
+                    flag_in_cube,
+                    (x + (CUBE_SIZE // 2 - x_numInCube / 2), y + (CUBE_SIZE // 2 - y_numInCube / 2))
+                )
+                continue
 
             if is_clicked:
                 pygame.draw.rect(screen, FIELD_LAYER_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
@@ -290,20 +309,43 @@ while running:
             running = False
             break
         if event.type == pygame.MOUSEBUTTONDOWN and not GM_OV:
+            mouse_btnL, _, mouse_btnR = pygame.mouse.get_pressed()
+
             mouse_position = pygame.mouse.get_pos()
             m_r, m_c = get_coordinates(mouse_position)
 
             if m_r >= ROWS or m_c >= COLUMNS:
                 continue
 
-            if FIELD[m_r][m_c] == 0:
-                FIELD_LAYER[m_r][m_c] = 1
-                look_around(m_r, m_c)
-            elif FIELD[m_r][m_c] != -1:
-                FIELD_LAYER[m_r][m_c] = 1
-            elif FIELD[m_r][m_c] == -1:
-                FIELD_LAYER[m_r][m_c] = 1
-                GM_OV = True
+            if mouse_btnL:
+
+                if [m_r, m_c] in FLAG_LIST:
+                    break
+
+                if FIELD[m_r][m_c] == 0:
+                    FIELD_LAYER[m_r][m_c] = 1
+                    look_around(m_r, m_c)
+                elif FIELD[m_r][m_c] != -1:
+                    FIELD_LAYER[m_r][m_c] = 1
+                elif FIELD[m_r][m_c] == -1:
+                    FIELD_LAYER[m_r][m_c] = 1
+                    GM_OV = True
+
+            if mouse_btnR:
+                if FLAGS:
+                    if not [m_r, m_c] in FLAG_LIST:
+                        FLAG_LIST.append([m_r, m_c])
+                        FIELD_LAYER[m_r][m_c] = 2
+                        FLAGS -= 1
+                    else:
+                        FLAG_LIST.remove([m_r, m_c])
+                        FIELD_LAYER[m_r][m_c] = 0
+                        FLAGS += 1
+                else:
+                    if [m_r, m_c] in FLAG_LIST:
+                        FLAG_LIST.remove([m_r, m_c])
+                        FIELD_LAYER[m_r][m_c] = 0
+                        FLAGS += 1
 
     screen.fill(SCREEN_COLOR)
 
