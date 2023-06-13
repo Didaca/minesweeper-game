@@ -28,12 +28,14 @@ FLAG_IMAGE = "flag.png"
 
 GAME_OVER_COLOR = "#ef233c"
 GAME_OVER_BG_COLOR = "#D3D3D3"
+x_GM_OV = 190
+y_GM_OV = 240
 
 # Cube parameters
 CUBE_COLOR = "#3C3F41"
 CUBE_SIZE = WIDTH // ROWS
 CUBE_RADIUS = 4
-CUBE_BOMB = "bomb.png"
+CUBE_BOMB_IMAGE = "bomb.png"
 CUBE_NUMBERS_COLOR = {1: '#ffffff', 2: '#a7c957', 3: '#ef233c', 4: '#fee440',
                       5: '#81c3d7', 6: '#e0b1cb', 7: '#fca311', 8: '#f0ead2'}
 
@@ -253,7 +255,7 @@ def create_screen():
 
             if GM_OV:
                 game_over = FONT.render("GAME OVER", True, GAME_OVER_COLOR, GAME_OVER_BG_COLOR)
-                screen.blit(game_over, (190, 240))
+                screen.blit(game_over, (x_GM_OV, y_GM_OV))
 
             if flag:
                 pygame.draw.rect(screen, FIELD_LAYER_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), border_radius=CUBE_RADIUS)
@@ -277,7 +279,7 @@ def create_screen():
                 pygame.draw.rect(screen, SCREEN_COLOR, (x, y, CUBE_SIZE, CUBE_SIZE), 1, border_radius=CUBE_RADIUS)
 
             if c < 0:
-                bomb_in_cube = pygame.image.load(CUBE_BOMB)
+                bomb_in_cube = pygame.image.load(CUBE_BOMB_IMAGE)
                 x_numInCube = bomb_in_cube.get_width()
                 y_numInCube = bomb_in_cube.get_height()
                 screen.blit(
@@ -297,7 +299,22 @@ def create_screen():
     pygame.display.update()
 
 
+def restart_game():
+    global GM_OV
+    global FIELD
+    global FIELD_LAYER
+
+    FIELD = []
+    FIELD_LAYER = []
+
+    create_fields(ROWS, COLUMNS, MINES)
+    create_layer()
+    GM_OV = False
+
+
 while running:
+
+    screen.fill(SCREEN_COLOR)
 
     if rerun:
         create_fields(ROWS, COLUMNS, MINES)
@@ -346,12 +363,11 @@ while running:
                         FLAG_LIST.remove([m_r, m_c])
                         FIELD_LAYER[m_r][m_c] = 0
                         FLAGS += 1
-
-    screen.fill(SCREEN_COLOR)
+        if event.type == pygame.KEYDOWN and GM_OV:
+            if event.key == pygame.K_r:
+                restart_game()
 
     create_screen()
-    # RENDER YOUR GAME HERE
-
     pygame.display.flip()
 
 pygame.quit()
