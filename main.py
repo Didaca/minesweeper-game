@@ -303,9 +303,11 @@ def restart_game():
     global GM_OV
     global FIELD
     global FIELD_LAYER
+    global FLAG_LIST
 
     FIELD = []
     FIELD_LAYER = []
+    FLAG_LIST = []
 
     create_fields(ROWS, COLUMNS, MINES)
     create_layer()
@@ -363,7 +365,7 @@ while running:
                         FLAG_LIST.remove([m_r, m_c])
                         FIELD_LAYER[m_r][m_c] = 0
                         FLAGS += 1
-        if event.type == pygame.KEYDOWN and GM_OV:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 restart_game()
 
