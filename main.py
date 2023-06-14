@@ -304,10 +304,12 @@ def restart_game():
     global FIELD
     global FIELD_LAYER
     global FLAG_LIST
+    global FLAGS
 
     FIELD = []
     FIELD_LAYER = []
     FLAG_LIST = []
+    FLAGS = MINES
 
     create_fields(ROWS, COLUMNS, MINES)
     create_layer()
@@ -328,13 +330,14 @@ while running:
             running = False
             break
         if event.type == pygame.MOUSEBUTTONDOWN and not GM_OV:
-            mouse_btnL, _, mouse_btnR = pygame.mouse.get_pressed()
-
+            # mouse_btnL, _, mouse_btnR = pygame.mouse.get_pressed()
             mouse_position = pygame.mouse.get_pos()
             m_r, m_c = get_coordinates(mouse_position)
 
             if m_r >= ROWS or m_c >= COLUMNS:
                 continue
+
+            mouse_btnL, _, mouse_btnR = pygame.mouse.get_pressed()
 
             if mouse_btnL:
 
